@@ -209,10 +209,14 @@ Provide a clear, helpful response about what you would do with their PayPal requ
 
       // Get invoice details/status
       if (
-        (lowerMessage.includes("get") && lowerMessage.includes("details") && lowerMessage.includes("invoice")) ||
+        (lowerMessage.includes("get") &&
+          lowerMessage.includes("details") &&
+          lowerMessage.includes("invoice")) ||
         (lowerMessage.includes("check") && lowerMessage.includes("invoice")) ||
         (lowerMessage.includes("invoice") && lowerMessage.includes("status")) ||
-        (lowerMessage.includes("get") && lowerMessage.includes("invoice") && !lowerMessage.includes("payment"))
+        (lowerMessage.includes("get") &&
+          lowerMessage.includes("invoice") &&
+          !lowerMessage.includes("payment"))
       ) {
         return await this.getInvoiceDetailsFromMessage(message);
       }
@@ -863,7 +867,7 @@ ${paymentLink}
     }
 
     const invoiceId = invoiceIdMatch[1];
-    
+
     const getInvoiceTool = this.tools.find(
       (tool) => tool.name === "get_invoice"
     );
@@ -884,13 +888,19 @@ ${paymentLink}
       }
 
       if (parsed.error) {
-        return `❌ Error getting invoice details: ${parsed.error.message || parsed.error}`;
+        return `❌ Error getting invoice details: ${
+          parsed.error.message || parsed.error
+        }`;
       }
 
       // Extract key information from the invoice
       const status = parsed.status || "UNKNOWN";
-      const amount = parsed.amount ? `${parsed.amount.value} ${parsed.amount.currency_code}` : "Unknown";
-      const recipient = parsed.primary_recipients?.[0]?.billing_info?.email_address || "Unknown";
+      const amount = parsed.amount
+        ? `${parsed.amount.value} ${parsed.amount.currency_code}`
+        : "Unknown";
+      const recipient =
+        parsed.primary_recipients?.[0]?.billing_info?.email_address ||
+        "Unknown";
       const invoiceNumber = parsed.detail?.invoice_number || invoiceId;
       const dueDate = parsed.detail?.due_date || "Not set";
       const createDate = parsed.detail?.metadata?.create_time || "Unknown";
@@ -899,7 +909,8 @@ ${paymentLink}
       let paymentLink = null;
       if (parsed.links && Array.isArray(parsed.links)) {
         const payerViewLink = parsed.links.find(
-          (link: any) => link.rel === "payer-view" || link.rel === "paypal_invoice_payment"
+          (link: any) =>
+            link.rel === "payer-view" || link.rel === "paypal_invoice_payment"
         );
         if (payerViewLink) {
           paymentLink = payerViewLink.href;
@@ -908,7 +919,7 @@ ${paymentLink}
 
       let statusEmoji = "❓";
       let statusMessage = "";
-      
+
       switch (status.toUpperCase()) {
         case "DRAFT":
           statusEmoji = "📝";
@@ -942,10 +953,13 @@ ${statusEmoji} **Status:** ${statusMessage}
 💰 **Amount:** ${amount}
 📅 **Created:** ${createDate}
 📅 **Due Date:** ${dueDate}
-${paymentLink ? `\n🔗 **Payment Link:**\n${paymentLink}\n\n📧 Share this link with your customer to collect payment!` : "\n⚠️ Payment link not available - invoice may need to be sent first"}
+${
+  paymentLink
+    ? `\n🔗 **Payment Link:**\n${paymentLink}\n\n📧 Share this link with your customer to collect payment!`
+    : "\n⚠️ Payment link not available - invoice may need to be sent first"
+}
 
 📊 **Full Details:** ${JSON.stringify(parsed, null, 2)}`;
-
     } catch (error: any) {
       return `❌ Error getting invoice details: ${error.message}`;
     }

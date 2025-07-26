@@ -33,7 +33,6 @@ async function checkInvoiceStatus(invoiceId) {
       console.log("\n❓ **STATUS UNCLEAR**");
       console.log("Check the response above for details");
     }
-
   } catch (error) {
     console.error("❌ Error:", error.message);
   }

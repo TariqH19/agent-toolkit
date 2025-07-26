@@ -5,7 +5,7 @@
 
 const testMessages = [
   "Create an order for $50",
-  "Create an order for $25.99 USD", 
+  "Create an order for $25.99 USD",
   "Create an invoice for usth@personal.com for $100 for Website development",
   "Create an invoice for usth@personal.com for $250 for consulting services",
   "Check invoice INV2-XXXX-XXXX-XXXX-XXXX",

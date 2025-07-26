@@ -13,7 +13,9 @@ async function getInvoicePaymentLink(invoiceId) {
     const response = await fetch(`${SERVER_URL}/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: `Get payment link for invoice ${invoiceId}` }),
+      body: JSON.stringify({
+        message: `Get payment link for invoice ${invoiceId}`,
+      }),
     });
 
     const data = await response.json();
@@ -21,7 +23,9 @@ async function getInvoicePaymentLink(invoiceId) {
     console.log(data.response);
 
     // Extract payment link
-    const paymentLinkMatch = data.response.match(/(https:\/\/www\.sandbox\.paypal\.com\/invoice\/p\/#[A-Z0-9-]+)/);
+    const paymentLinkMatch = data.response.match(
+      /(https:\/\/www\.sandbox\.paypal\.com\/invoice\/p\/#[A-Z0-9-]+)/
+    );
     if (paymentLinkMatch) {
       const paymentLink = paymentLinkMatch[1];
       console.log("\n🔗 **PAYMENT LINK FOUND:**");
@@ -33,9 +37,10 @@ async function getInvoicePaymentLink(invoiceId) {
       console.log(`   node check-invoice-status.js ${invoiceId}`);
     } else {
       console.log("\n❌ **PAYMENT LINK NOT FOUND**");
-      console.log("The invoice may need to be sent first or may be in draft status");
+      console.log(
+        "The invoice may need to be sent first or may be in draft status"
+      );
     }
-
   } catch (error) {
     console.error("❌ Error:", error.message);
   }

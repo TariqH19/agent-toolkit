@@ -5,6 +5,7 @@ A complete PayPal commerce assistant built with LangChain and Ollama for local L
 ## ✨ Features
 
 ### 📧 Invoice Management
+
 - ✅ **Create invoices** with automatic payment link generation
 - ✅ **Check payment status** (PAID, SENT, DRAFT, etc.)
 - ✅ **Extract payment links** for customer sharing
@@ -12,12 +13,14 @@ A complete PayPal commerce assistant built with LangChain and Ollama for local L
 - ✅ **Customer payment** without PayPal account required
 
 ### 💳 Order Processing
+
 - ✅ **Create orders** with approval URL generation
 - ✅ **Get approval URLs** for customer payment
 - ✅ **Capture payments** after customer approval
 - ✅ **Order status tracking** throughout the workflow
 
 ### 🛠️ Additional Features
+
 - � Transaction listing and monitoring
 - 📦 Shipment tracking integration
 - 💰 Refund processing capabilities
@@ -27,6 +30,7 @@ A complete PayPal commerce assistant built with LangChain and Ollama for local L
 ## 🚀 Quick Start
 
 ### 1. Prerequisites
+
 ```bash
 # Install Ollama
 curl -fsSL https://ollama.ai/install.sh | sh
@@ -39,6 +43,7 @@ ollama pull llama3.1:8b
 ```
 
 ### 2. Setup
+
 ```bash
 # Install dependencies
 npm install
@@ -51,11 +56,12 @@ npm run dev
 ```
 
 ### 3. Test the Workflows
+
 ```bash
 # Test complete invoice workflow
 node test-invoice-workflow.js
 
-# Test complete order workflow  
+# Test complete order workflow
 node test-order-workflow.js
 
 # Run main test suite
@@ -65,6 +71,7 @@ npm test
 ## 🔧 API Usage
 
 ### Chat Endpoint
+
 ```bash
 curl -X POST http://localhost:3000/chat \
   -H "Content-Type: application/json" \
@@ -72,6 +79,7 @@ curl -X POST http://localhost:3000/chat \
 ```
 
 ### 📧 Invoice Examples
+
 ```bash
 # Create invoice with payment link
 "Create an invoice for usth@personal.com for $50 for Web Development Services"
@@ -87,6 +95,7 @@ curl -X POST http://localhost:3000/chat \
 ```
 
 ### 💳 Order Examples
+
 ```bash
 # Create order with approval URL
 "Create an order for $25"
@@ -99,6 +108,7 @@ curl -X POST http://localhost:3000/chat \
 ```
 
 ### 📊 Other Operations
+
 ```bash
 # List transactions
 "List my recent transactions"
@@ -116,6 +126,7 @@ curl -X POST http://localhost:3000/chat \
 ## 🛠️ Test Workflows
 
 ### Complete Invoice Workflow
+
 ```bash
 # Creates invoice → Gets payment link → Checks status
 node test-invoice-workflow.js
@@ -128,6 +139,7 @@ node get-invoice-link.js INV2-XXXX-XXXX-XXXX-XXXX
 ```
 
 ### Complete Order Workflow
+
 ```bash
 # Creates order → Gets approval URL → Shows capture command
 node test-order-workflow.js
@@ -139,12 +151,15 @@ node capture-order.js 1AB23456CD789012E
 ## 📋 Workflow Examples
 
 ### 📧 Invoice Payment Link Workflow
+
 1. **Create Invoice**: `node test-invoice-workflow.js`
+
    - Creates invoice for $50
    - Automatically generates payment link
    - Status: SENT
 
 2. **Share Payment Link**: Customer receives
+
    - `https://www.sandbox.paypal.com/invoice/p/#INV2-XXXX-XXXX-XXXX-XXXX`
    - Customer can pay without PayPal account
 
@@ -153,11 +168,14 @@ node capture-order.js 1AB23456CD789012E
    - Shows payment details and transaction ID
 
 ### 💳 Order Approval Workflow
+
 1. **Create Order**: `node test-order-workflow.js`
+
    - Creates order for $25
    - Gets approval URL: `https://www.sandbox.paypal.com/checkoutnow?token=ORDER_ID`
 
 2. **Customer Approval**: Open approval URL
+
    - Customer logs into PayPal
    - Approves payment
 
@@ -177,11 +195,12 @@ PAYPAL_ENVIRONMENT=sandbox
 OLLAMA_BASE_URL=http://localhost:11434
 OLLAMA_MODEL=llama3.1:8b
 
-# Server Configuration  
+# Server Configuration
 PORT=3000
 ```
 
 ### 🔑 Getting PayPal Credentials
+
 1. Visit [PayPal Developer Dashboard](https://developer.paypal.com/developer/accounts/)
 2. Create a new application
 3. Copy Client ID and Client Secret
@@ -226,18 +245,21 @@ paypal-agent-toolkit/
 ## 🎯 Key Features Implemented
 
 ### ✅ Working Invoice System
+
 - **Automatic payment link generation** during creation
 - **Real payment status checking** (PAID, SENT, DRAFT)
 - **Customer payment without PayPal account**
 - **Complete invoice details** with transaction history
 
-### ✅ Working Order System  
+### ✅ Working Order System
+
 - **Order creation** with approval URLs
 - **Customer approval workflow**
 - **Payment capture** after approval
 - **Order status tracking**
 
 ### ✅ PayPal API Integration
+
 - **15 PayPal tools** fully integrated
 - **Sandbox environment** for safe testing
 - **Production ready** with credential switch
@@ -245,6 +267,7 @@ paypal-agent-toolkit/
 ## 🚀 Production Deployment
 
 ### Next Steps
+
 1. **Replace sandbox credentials** with production ones in `.env`
 2. **Add authentication** for API access control
 3. **Create web frontend** for user interface
@@ -253,6 +276,7 @@ paypal-agent-toolkit/
 6. **Implement user management** and multi-tenant support
 
 ### Security Considerations
+
 - Store PayPal credentials securely
 - Use HTTPS in production
 - Implement rate limiting
@@ -262,6 +286,7 @@ paypal-agent-toolkit/
 ## 🔧 Troubleshooting
 
 ### Common Issues
+
 - **Ollama not running**: Start with `ollama serve`
 - **Model not found**: Download with `ollama pull llama3.1:8b`
 - **PayPal API errors**: Verify credentials in `.env` file
@@ -269,6 +294,7 @@ paypal-agent-toolkit/
 - **Order capture fails**: Ensure order was approved by customer first
 
 ### Debug Commands
+
 ```bash
 # Check available tools
 curl http://localhost:3000/tools
@@ -286,6 +312,7 @@ npm run dev  # Watch terminal output
 ## 📞 Support
 
 For issues and questions:
+
 - Check server logs for detailed error messages
 - Verify PayPal sandbox account status
 - Ensure all environment variables are set correctly

@@ -19,7 +19,11 @@ class InvoiceWorkflowTest {
   }
 
   // Step 1: Create a new invoice
-  async createInvoice(email = "usth@personal.com", amount = "50.00", description = "Web Development Services") {
+  async createInvoice(
+    email = "usth@personal.com",
+    amount = "50.00",
+    description = "Web Development Services"
+  ) {
     console.log("📧 Step 1: Creating Invoice");
     console.log(`💰 Amount: $${amount}`);
     console.log(`📨 Recipient: ${email}`);
@@ -34,7 +38,9 @@ class InvoiceWorkflowTest {
       console.log(result.response);
 
       // Extract invoice ID
-      const invoiceIdMatch = result.response.match(/Invoice ID: (INV[A-Z0-9-]+)/);
+      const invoiceIdMatch = result.response.match(
+        /Invoice ID: (INV[A-Z0-9-]+)/
+      );
       if (invoiceIdMatch) {
         this.invoiceId = invoiceIdMatch[1];
         console.log(`\n🆔 Invoice ID: ${this.invoiceId}`);
@@ -44,7 +50,9 @@ class InvoiceWorkflowTest {
       }
 
       // Extract payment link if available
-      const paymentLinkMatch = result.response.match(/(https:\/\/www\.sandbox\.paypal\.com\/invoice\/p\/#[A-Z0-9-]+)/);
+      const paymentLinkMatch = result.response.match(
+        /(https:\/\/www\.sandbox\.paypal\.com\/invoice\/p\/#[A-Z0-9-]+)/
+      );
       if (paymentLinkMatch) {
         this.paymentLink = paymentLinkMatch[1];
         console.log(`\n🔗 Payment Link: ${this.paymentLink}`);
@@ -77,12 +85,16 @@ class InvoiceWorkflowTest {
     console.log("─".repeat(50));
 
     try {
-      const result = await this.sendMessage(`Get payment link for invoice ${this.invoiceId}`);
+      const result = await this.sendMessage(
+        `Get payment link for invoice ${this.invoiceId}`
+      );
       console.log("✅ Payment Link Response:");
       console.log(result.response);
 
       // Extract payment link
-      const paymentLinkMatch = result.response.match(/(https:\/\/www\.sandbox\.paypal\.com\/invoice\/p\/#[A-Z0-9-]+)/);
+      const paymentLinkMatch = result.response.match(
+        /(https:\/\/www\.sandbox\.paypal\.com\/invoice\/p\/#[A-Z0-9-]+)/
+      );
       if (paymentLinkMatch) {
         this.paymentLink = paymentLinkMatch[1];
         console.log(`\n🔗 Payment Link Found: ${this.paymentLink}`);
@@ -113,13 +125,22 @@ class InvoiceWorkflowTest {
       console.log("✅ Invoice Status Response:");
       console.log(result.response);
 
-      if (result.response.includes("PAID") || result.response.includes("paid")) {
+      if (
+        result.response.includes("PAID") ||
+        result.response.includes("paid")
+      ) {
         console.log("\n🎉 **INVOICE PAID!**");
         return true;
-      } else if (result.response.includes("SENT") || result.response.includes("sent")) {
+      } else if (
+        result.response.includes("SENT") ||
+        result.response.includes("sent")
+      ) {
         console.log("\n📧 **INVOICE SENT** - Waiting for payment");
         return true;
-      } else if (result.response.includes("DRAFT") || result.response.includes("draft")) {
+      } else if (
+        result.response.includes("DRAFT") ||
+        result.response.includes("draft")
+      ) {
         console.log("\n📝 **INVOICE DRAFT** - Ready to be sent");
         return true;
       } else {
