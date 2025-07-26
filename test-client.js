@@ -1,14 +1,18 @@
+// PayPal Agent Toolkit - Main Test Suite
+// For comprehensive workflow testing, use:
+//   node test-invoice-workflow.js  - Complete invoice workflow
+//   node test-order-workflow.js    - Complete order workflow
+
 const testMessages = [
   "Create an order for $50",
-  "Create an order for $25.99 USD",
-  "Create an invoice for john@example.com for $100 with description 'Website development'",
-  "Create an invoice for client@company.com for $250 for consulting services",
+  "Create an order for $25.99 USD", 
+  "Create an invoice for usth@personal.com for $100 for Website development",
+  "Create an invoice for usth@personal.com for $250 for consulting services",
+  "Check invoice INV2-XXXX-XXXX-XXXX-XXXX",
+  "Get payment link for invoice INV2-XXXX-XXXX-XXXX-XXXX",
   "List my recent transactions",
-  "Create a product called 'Premium Software License' for $299",
-  "List all my products",
   "List all my invoices",
   "Create a shipment tracking for 1Z999AA1234567890",
-  "Get dispute information",
 ];
 
 // Test to check what tools are actually available
@@ -64,7 +68,7 @@ async function testRealAPIIntegration() {
     },
     {
       name: "Invoice Creation",
-      message: "Create an invoice for test@example.com for $10",
+      message: "Create an invoice for usth@personal.com for $10",
       expectReal: true,
     },
     {

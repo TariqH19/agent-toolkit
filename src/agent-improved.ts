@@ -150,10 +150,19 @@ Provide a clear, helpful response about what you would do with their PayPal requ
     const lowerMessage = message.toLowerCase();
 
     try {
+      // Create invoice (check this BEFORE order creation)
+      if (
+        lowerMessage.includes("invoice") &&
+        (lowerMessage.includes("create") || lowerMessage.includes("for"))
+      ) {
+        return await this.createInvoice(message);
+      }
+
       // Create order
       if (
         (lowerMessage.includes("create") || lowerMessage.includes("make")) &&
-        (lowerMessage.includes("order") || lowerMessage.includes("payment"))
+        (lowerMessage.includes("order") || lowerMessage.includes("payment")) &&
+        !lowerMessage.includes("invoice")
       ) {
         return await this.createOrder(message);
       }
@@ -184,17 +193,33 @@ Provide a clear, helpful response about what you would do with their PayPal requ
         return await this.listTransactions();
       }
 
-      // Create invoice
-      if (
-        lowerMessage.includes("invoice") &&
-        (lowerMessage.includes("create") || lowerMessage.includes("for"))
-      ) {
-        return await this.createInvoice(message);
-      }
-
       // List invoices
       if (lowerMessage.includes("list") && lowerMessage.includes("invoice")) {
         return await this.listInvoices();
+      }
+
+      // Get invoice payment link
+      if (
+        (lowerMessage.includes("payment") && lowerMessage.includes("link")) ||
+        (lowerMessage.includes("pay") && lowerMessage.includes("invoice")) ||
+        (lowerMessage.includes("payment") && lowerMessage.includes("url"))
+      ) {
+        return await this.getInvoicePaymentLinkFromMessage(message);
+      }
+
+      // Get invoice details/status
+      if (
+        (lowerMessage.includes("get") && lowerMessage.includes("details") && lowerMessage.includes("invoice")) ||
+        (lowerMessage.includes("check") && lowerMessage.includes("invoice")) ||
+        (lowerMessage.includes("invoice") && lowerMessage.includes("status")) ||
+        (lowerMessage.includes("get") && lowerMessage.includes("invoice") && !lowerMessage.includes("payment"))
+      ) {
+        return await this.getInvoiceDetailsFromMessage(message);
+      }
+
+      // Send invoice
+      if (lowerMessage.includes("send") && lowerMessage.includes("invoice")) {
+        return await this.sendInvoiceFromMessage(message);
       }
 
       // Track shipment
@@ -310,16 +335,46 @@ ${JSON.stringify(parsed, null, 2)}`;
         invoice_number: `INV-${Date.now()}`,
         currency_code: "USD",
         note: description.trim(),
+        invoice_date: new Date().toISOString().split("T")[0], // YYYY-MM-DD format
+        payment_term: {
+          term_type: "NET_30",
+        },
       },
       invoicer: {
-        name: { given_name: "PayPal", surname: "Agent" },
-        email_address: "merchant@example.com",
+        name: { given_name: "PayPal", surname: "Merchant" },
+        email_address: "usth@business.com",
+        phones: [
+          {
+            country_code: "1",
+            national_number: "5551234567",
+            phone_type: "MOBILE",
+          },
+        ],
+        website: "https://example.com",
+        logo_url: "https://via.placeholder.com/150",
       },
       primary_recipients: [
         {
           billing_info: {
             name: { given_name: "Customer", surname: "Name" },
             email_address: email,
+            phones: [
+              {
+                country_code: "1",
+                national_number: "5559876543",
+                phone_type: "MOBILE",
+              },
+            ],
+          },
+          shipping_info: {
+            name: { given_name: "Customer", surname: "Name" },
+            address: {
+              address_line_1: "123 Main St",
+              admin_area_2: "San Jose",
+              admin_area_1: "CA",
+              postal_code: "95131",
+              country_code: "US",
+            },
           },
         },
       ],
@@ -329,8 +384,17 @@ ${JSON.stringify(parsed, null, 2)}`;
           description: description.trim(),
           quantity: "1",
           unit_amount: { currency_code: "USD", value: amount.toFixed(2) },
+          unit_of_measure: "QUANTITY",
         },
       ],
+      configuration: {
+        partial_payment: {
+          allow_partial_payment: false,
+        },
+        allow_tip: false,
+        tax_calculated_after_discount: true,
+        tax_inclusive: false,
+      },
       amount: {
         breakdown: {
           item_total: { currency_code: "USD", value: amount.toFixed(2) },
@@ -361,12 +425,78 @@ ${JSON.stringify(parsed, null, 2)}`;
     // Extract invoice ID from the response
     const invoiceId = this.extractInvoiceIdFromResponse(parsed);
 
-    return `📄 **Invoice Created Successfully!**
+    // Check if payment link is already available in creation response
+    let paymentLinkFromCreation = null;
+    if (parsed.sendResult?.href) {
+      console.log(
+        "🔗 Found payment link in sendResult:",
+        parsed.sendResult.href
+      );
+      paymentLinkFromCreation = parsed.sendResult.href;
+    }
+
+    // If we have a valid invoice ID and payment link from creation, use them
+    if (invoiceId !== "Unknown" && paymentLinkFromCreation) {
+      return `📄 **Invoice Created and Sent Successfully!**
 - Invoice ID: ${invoiceId}
 - Amount: ${amount} USD
 - Recipient: ${email}
 - Description: ${description}
-- Status: DRAFT`;
+- Status: SENT
+
+💳 **Payment Link Ready!**
+${paymentLinkFromCreation}
+
+📧 Share this link with your customer to collect payment!
+✅ Customers can pay without a PayPal account!`;
+    }
+
+    // Fallback: Automatically attempt to send the invoice
+    console.log(`🚀 Attempting to send invoice ${invoiceId} automatically...`);
+    const sendResult = await this.sendInvoice(invoiceId);
+
+    // Get payment link after sending (if successful)
+    const paymentLink = await this.getInvoicePaymentLink(invoiceId);
+
+    if (sendResult && sendResult.includes("successfully")) {
+      return `📄 **Invoice Created and Sent Successfully!**
+- Invoice ID: ${invoiceId}
+- Amount: ${amount} USD
+- Recipient: ${email}
+- Description: ${description}
+- Status: SENT
+- 📧 ${sendResult}
+${
+  paymentLink
+    ? `\n💳 **Payment Link Ready!**\n${paymentLink}\n\n📧 Share this link with your customer to collect payment!`
+    : '\n⚠️ Payment link extraction pending - try: "Get payment link for invoice ' +
+      invoiceId +
+      '"'
+}`;
+    } else {
+      return `📄 **Invoice Created Successfully!**
+- Invoice ID: ${invoiceId}
+- Amount: ${amount} USD
+- Recipient: ${email}
+- Description: ${description}
+- Status: DRAFT
+- ⚠️ Auto-send failed: ${sendResult || "Unknown error"}
+
+💡 **Next Steps to Get Payment Link:**
+1. 🌐 **Manual Sending (Recommended):**
+   - Visit: https://developer.paypal.com/developer/accounts/
+   - Log into your business sandbox account
+   - Go to: Business Account → Invoicing
+   - Find invoice ${invoiceId} and click "Send"
+   
+2. 🤖 **Retry Sending:**
+   - Try: "Send invoice ${invoiceId}"
+   
+3. 🔗 **Get Payment Link:**
+   - After sending: "Get payment link for invoice ${invoiceId}"
+
+📧 Once sent, customers can pay without a PayPal account!`;
+    }
   }
 
   private async listInvoices(): Promise<string> {
@@ -466,7 +596,8 @@ ${JSON.stringify(parsed, null, 2)}`;
 
   private extractInvoiceIdFromHref(href: string): string | null {
     if (!href) return null;
-    const match = href.match(/\/invoices\/([A-Z0-9-]+)/);
+    // PayPal invoice IDs follow pattern like INV2-XXXX-XXXX-XXXX-XXXX
+    const match = href.match(/\/invoices\/(INV[A-Z0-9-]+)/i);
     return match ? match[1] : null;
   }
 
@@ -482,11 +613,45 @@ ${JSON.stringify(parsed, null, 2)}`;
       return response.id;
     }
 
-    // Try to extract from href
+    // Try to extract from createResult.href (PayPal API structure)
+    if (response.createResult?.href) {
+      console.log(
+        "🔗 Found createResult.href, trying to extract:",
+        response.createResult.href
+      );
+      const extracted = this.extractInvoiceIdFromHref(
+        response.createResult.href
+      );
+      if (extracted) {
+        console.log(
+          "✅ Extracted invoice ID from createResult.href:",
+          extracted
+        );
+        return extracted;
+      }
+    }
+
+    // Try to extract from top-level href
     if (response.href) {
       console.log("🔗 Found href, trying to extract:", response.href);
       const extracted = this.extractInvoiceIdFromHref(response.href);
-      if (extracted) return extracted;
+      if (extracted) {
+        console.log("✅ Extracted invoice ID from href:", extracted);
+        return extracted;
+      }
+    }
+
+    // Try to extract from links array
+    if (response.links && Array.isArray(response.links)) {
+      for (const link of response.links) {
+        if (link.rel === "self" && link.href) {
+          const extracted = this.extractInvoiceIdFromHref(link.href);
+          if (extracted) {
+            console.log("✅ Extracted invoice ID from links:", extracted);
+            return extracted;
+          }
+        }
+      }
     }
 
     console.log("❌ No invoice ID found, returning Unknown");
@@ -584,5 +749,268 @@ ${JSON.stringify(parsed, null, 2)}`;
     } catch (error: any) {
       return `❌ Error capturing order: ${error.message}`;
     }
+  }
+
+  private async getInvoicePaymentLink(
+    invoiceId: string
+  ): Promise<string | null> {
+    const getInvoiceTool = this.tools.find(
+      (tool) => tool.name === "get_invoice"
+    );
+    if (!getInvoiceTool) {
+      console.log(
+        "❌ Get invoice tool not available for payment link extraction"
+      );
+      return null;
+    }
+
+    try {
+      const result = await getInvoiceTool.func(
+        JSON.stringify({ invoice_id: invoiceId })
+      );
+      let parsed = JSON.parse(result);
+
+      // Check if the result is double-stringified
+      if (typeof parsed === "string") {
+        parsed = JSON.parse(parsed);
+      }
+
+      if (parsed.error) {
+        console.log("❌ Error getting invoice details:", parsed.error);
+        return null;
+      }
+
+      // Look for payment links in the response
+      if (parsed.links) {
+        // Look for the payment link (rel: "payer-view" or "paypal_invoice_payment")
+        const paymentLink = parsed.links.find(
+          (link: any) =>
+            link.rel === "payer-view" ||
+            link.rel === "paypal_invoice_payment" ||
+            link.href.includes("invoice/pay") ||
+            link.href.includes("invoices/pay")
+        );
+
+        if (paymentLink) {
+          return paymentLink.href;
+        }
+      }
+
+      // Check if invoice status is SENT/UNPAID and look for alternative payment URLs
+      if (parsed.status === "SENT" || parsed.status === "UNPAID") {
+        // For sent invoices, construct the payment URL if possible
+        if (parsed.href) {
+          // Some invoices have a direct href that can be used
+          return parsed.href;
+        }
+      }
+
+      console.log(
+        "🔍 Invoice found but no payment link available. Status:",
+        parsed.status
+      );
+      console.log("🔍 Available links:", parsed.links);
+      return null;
+    } catch (error: any) {
+      console.log("❌ Error getting invoice payment link:", error.message);
+      return null;
+    }
+  }
+
+  private async getInvoicePaymentLinkFromMessage(
+    message: string
+  ): Promise<string> {
+    // Extract invoice ID from message - Handle both INV- and INV2- patterns
+    const invoiceIdMatch = message.match(/(INV2?-[A-Z0-9-]+|[A-Z0-9]{17,})/);
+    if (!invoiceIdMatch) {
+      return "❌ Please provide a valid invoice ID (e.g., 'Get payment link for invoice INV-1234567890' or 'Get payment link for invoice INV2-XXXX-XXXX-XXXX-XXXX')";
+    }
+
+    const invoiceId = invoiceIdMatch[1];
+    const paymentLink = await this.getInvoicePaymentLink(invoiceId);
+
+    if (paymentLink) {
+      return `💳 **Invoice Payment Link Ready!**
+- Invoice ID: ${invoiceId}
+- Payment URL: ${paymentLink}
+
+📧 **Share this link with your customer:**
+${paymentLink}
+
+✅ Customers can pay directly without a PayPal account!
+💡 The link is secure and handles the complete payment process.`;
+    } else {
+      return `❌ **Payment Link Not Available**
+- Invoice ID: ${invoiceId}
+
+🔍 **Possible reasons:**
+- Invoice is still in DRAFT status (not sent yet)
+- Invoice needs to be sent via PayPal dashboard first
+
+💡 **To get the payment link:**
+1. Send the invoice via PayPal Sandbox Dashboard:
+   https://developer.paypal.com/developer/accounts/
+2. Once sent, try this command again
+3. Or ask: "Get details for invoice ${invoiceId}" to check status`;
+    }
+  }
+
+  private async getInvoiceDetailsFromMessage(message: string): Promise<string> {
+    // Extract invoice ID from message - Handle both INV- and INV2- patterns
+    const invoiceIdMatch = message.match(/(INV2?-[A-Z0-9-]+)/);
+    if (!invoiceIdMatch) {
+      return "❌ Please provide a valid invoice ID (e.g., 'Get details for invoice INV2-XXXX-XXXX-XXXX-XXXX' or 'Check invoice INV-1234567890')";
+    }
+
+    const invoiceId = invoiceIdMatch[1];
+    
+    const getInvoiceTool = this.tools.find(
+      (tool) => tool.name === "get_invoice"
+    );
+    if (!getInvoiceTool) {
+      return "❌ Get invoice tool not available";
+    }
+
+    try {
+      const result = await getInvoiceTool.func(
+        JSON.stringify({ invoice_id: invoiceId })
+      );
+
+      let parsed = JSON.parse(result);
+
+      // Check if the result is double-stringified
+      if (typeof parsed === "string") {
+        parsed = JSON.parse(parsed);
+      }
+
+      if (parsed.error) {
+        return `❌ Error getting invoice details: ${parsed.error.message || parsed.error}`;
+      }
+
+      // Extract key information from the invoice
+      const status = parsed.status || "UNKNOWN";
+      const amount = parsed.amount ? `${parsed.amount.value} ${parsed.amount.currency_code}` : "Unknown";
+      const recipient = parsed.primary_recipients?.[0]?.billing_info?.email_address || "Unknown";
+      const invoiceNumber = parsed.detail?.invoice_number || invoiceId;
+      const dueDate = parsed.detail?.due_date || "Not set";
+      const createDate = parsed.detail?.metadata?.create_time || "Unknown";
+
+      // Check if there's a payment link
+      let paymentLink = null;
+      if (parsed.links && Array.isArray(parsed.links)) {
+        const payerViewLink = parsed.links.find(
+          (link: any) => link.rel === "payer-view" || link.rel === "paypal_invoice_payment"
+        );
+        if (payerViewLink) {
+          paymentLink = payerViewLink.href;
+        }
+      }
+
+      let statusEmoji = "❓";
+      let statusMessage = "";
+      
+      switch (status.toUpperCase()) {
+        case "DRAFT":
+          statusEmoji = "📝";
+          statusMessage = "Invoice is in draft - not yet sent";
+          break;
+        case "SENT":
+          statusEmoji = "📧";
+          statusMessage = "Invoice sent - awaiting payment";
+          break;
+        case "PAID":
+        case "COMPLETED":
+          statusEmoji = "💰";
+          statusMessage = "Invoice has been paid!";
+          break;
+        case "CANCELLED":
+          statusEmoji = "❌";
+          statusMessage = "Invoice has been cancelled";
+          break;
+        case "PARTIALLY_PAID":
+          statusEmoji = "💵";
+          statusMessage = "Invoice partially paid";
+          break;
+        default:
+          statusMessage = `Invoice status: ${status}`;
+      }
+
+      return `📄 **Invoice Details**
+${statusEmoji} **Status:** ${statusMessage}
+🆔 **Invoice ID:** ${invoiceId}
+📧 **Recipient:** ${recipient}
+💰 **Amount:** ${amount}
+📅 **Created:** ${createDate}
+📅 **Due Date:** ${dueDate}
+${paymentLink ? `\n🔗 **Payment Link:**\n${paymentLink}\n\n📧 Share this link with your customer to collect payment!` : "\n⚠️ Payment link not available - invoice may need to be sent first"}
+
+📊 **Full Details:** ${JSON.stringify(parsed, null, 2)}`;
+
+    } catch (error: any) {
+      return `❌ Error getting invoice details: ${error.message}`;
+    }
+  }
+
+  private async sendInvoice(invoiceId: string): Promise<string | null> {
+    const sendInvoiceTool = this.tools.find(
+      (tool) => tool.name === "send_invoice"
+    );
+    if (!sendInvoiceTool) {
+      console.log("❌ Send invoice tool not available");
+      return "⚠️ Invoice created but could not be sent automatically";
+    }
+
+    try {
+      const result = await sendInvoiceTool.func(
+        JSON.stringify({
+          invoice_id: invoiceId,
+          note: "Thank you for choosing us. If there are any issues, feel free to contact us.",
+          send_to_recipient: true,
+        })
+      );
+
+      let parsed = JSON.parse(result);
+
+      // Check if the result is double-stringified
+      if (typeof parsed === "string") {
+        parsed = JSON.parse(parsed);
+      }
+
+      if (parsed.error) {
+        console.log("❌ Error sending invoice:", parsed.error);
+        return `⚠️ Invoice created but failed to send: ${JSON.stringify(
+          parsed.error
+        )}`;
+      }
+
+      console.log("✅ Invoice sent successfully, response:", parsed);
+      return "✅ Invoice sent successfully to recipient";
+    } catch (error: any) {
+      console.log("❌ Error sending invoice:", error.message);
+      return `⚠️ Invoice created but failed to send: ${error.message}`;
+    }
+  }
+
+  private async sendInvoiceFromMessage(message: string): Promise<string> {
+    // Extract invoice ID from message - Handle both INV- and INV2- patterns
+    const invoiceIdMatch = message.match(/(INV2?-[A-Z0-9-]+|[A-Z0-9]{17,})/);
+    if (!invoiceIdMatch) {
+      return "❌ Please provide a valid invoice ID (e.g., 'Send invoice INV-1234567890' or 'Send invoice INV2-XXXX-XXXX-XXXX-XXXX')";
+    }
+
+    const invoiceId = invoiceIdMatch[1];
+    const sendResult = await this.sendInvoice(invoiceId);
+
+    // Get payment link after sending
+    const paymentLink = await this.getInvoicePaymentLink(invoiceId);
+
+    return `📧 **Invoice Sending Result**
+- Invoice ID: ${invoiceId}
+- ${sendResult || "Sending status unknown"}
+${
+  paymentLink
+    ? `\n💳 **Payment Link Ready!**\n${paymentLink}\n\n📧 Share this link with your customer to collect payment!`
+    : "\n⚠️ Payment link not available - check invoice status"
+}`;
   }
 }

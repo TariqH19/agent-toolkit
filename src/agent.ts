@@ -242,7 +242,7 @@ Provide a clear, helpful response about what you would do with their PayPal requ
               given_name: "PayPal",
               surname: "Agent",
             },
-            email_address: "merchant@example.com",
+            email_address: "usth@business.com",
           },
           primary_recipients: [
             {
