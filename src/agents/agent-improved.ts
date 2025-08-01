@@ -25,13 +25,34 @@ export class PayPalAgent {
     try {
       // Create a simple prompt template for PayPal operations
       const prompt = ChatPromptTemplate.fromTemplate(`
-You are a PayPal commerce assistant. You help users with PayPal operations including:
-- Creating orders/payments
-- Checking payment status  
-- Creating invoices
-- Tracking shipments
-- Processing refunds
-- Listing transactions
+You are a comprehensive PayPal commerce assistant. You help users with complete PayPal operations including:
+
+PAYMENT OPERATIONS:
+- Creating orders/payments and capturing them
+- Processing refunds and checking payment status
+- Listing transactions and payment history
+
+INVOICE MANAGEMENT:
+- Creating, sending, and managing invoices
+- Generating payment links and QR codes
+- Sending reminders and cancelling invoices
+
+PRODUCT CATALOG:
+- Creating and managing products
+- Listing products and viewing details
+
+SUBSCRIPTION MANAGEMENT:
+- Creating and managing subscription plans
+- Creating, updating, and cancelling subscriptions
+- Viewing subscription details and status
+
+DISPUTE MANAGEMENT:
+- Listing and viewing dispute details
+- Accepting dispute claims
+
+SHIPMENT TRACKING:
+- Creating and tracking shipments
+- Managing delivery information
 
 Based on the user's request, determine what PayPal operation they want and provide a helpful response.
 
@@ -140,10 +161,54 @@ Provide a clear, helpful response about what you would do with their PayPal requ
         .map((t) => t.name)
         .join(
           ", "
-        )}. I can help you with orders, invoices, transactions, refunds, and shipment tracking.`;
+        )}. I can help you with orders, invoices, transactions, refunds, shipment tracking, subscriptions, products, and disputes.`;
     }
 
-    return "I'm a PayPal assistant that can help you with payments, invoices, tracking, and refunds. What would you like to do?";
+    // Product-related responses
+    if (lowerMessage.includes("product")) {
+      if (lowerMessage.includes("create")) {
+        return "I'll help you create a new product in your PayPal catalog.";
+      } else if (lowerMessage.includes("list")) {
+        return "I'll list all products in your PayPal catalog.";
+      } else {
+        return "I can help you manage products - create, list, or get details.";
+      }
+    }
+
+    // Subscription-related responses
+    if (lowerMessage.includes("subscription")) {
+      if (lowerMessage.includes("plan")) {
+        return "I'll help you manage subscription plans - create, list, or get details.";
+      } else if (lowerMessage.includes("create")) {
+        return "I'll help you create a new subscription for a customer.";
+      } else if (lowerMessage.includes("cancel")) {
+        return "I'll help you cancel an existing subscription.";
+      } else {
+        return "I can help you with subscription management - plans, subscriptions, updates, and cancellations.";
+      }
+    }
+
+    // Dispute-related responses
+    if (lowerMessage.includes("dispute")) {
+      if (lowerMessage.includes("list")) {
+        return "I'll list all open disputes in your account.";
+      } else if (lowerMessage.includes("accept")) {
+        return "I'll help you accept a dispute claim.";
+      } else {
+        return "I can help you manage disputes - list, view details, or accept claims.";
+      }
+    }
+
+    // Advanced invoice responses
+    if (lowerMessage.includes("reminder") && lowerMessage.includes("invoice")) {
+      return "I'll send a payment reminder for the specified invoice.";
+    }
+
+    if (lowerMessage.includes("qr") && lowerMessage.includes("invoice")) {
+      return "I'll generate a QR code for the specified invoice.";
+    }
+
+    return "I'm a comprehensive PayPal assistant that can help you with payments, invoices, tracking, refunds, subscriptions, products, and dispute management. What would you like to do?";
   }
 
   private async executePayPalOperation(message: string): Promise<string> {
@@ -231,8 +296,134 @@ Provide a clear, helpful response about what you would do with their PayPal requ
         return await this.trackShipment(message);
       }
 
+      // === PRODUCT CATALOG OPERATIONS ===
+
+      // Create product
+      if (lowerMessage.includes("create") && lowerMessage.includes("product")) {
+        return await this.createProduct(message);
+      }
+
+      // List products
+      if (lowerMessage.includes("list") && lowerMessage.includes("product")) {
+        return await this.listProducts();
+      }
+
+      // Get product details
+      if (
+        (lowerMessage.includes("get") && lowerMessage.includes("product")) ||
+        (lowerMessage.includes("show") && lowerMessage.includes("product"))
+      ) {
+        return await this.getProduct(message);
+      }
+
+      // === SUBSCRIPTION OPERATIONS ===
+
+      // Create subscription plan
+      if (
+        lowerMessage.includes("create") &&
+        lowerMessage.includes("subscription") &&
+        lowerMessage.includes("plan")
+      ) {
+        return await this.createSubscriptionPlan(message);
+      }
+
+      // List subscription plans
+      if (
+        lowerMessage.includes("list") &&
+        lowerMessage.includes("subscription") &&
+        lowerMessage.includes("plan")
+      ) {
+        return await this.listSubscriptionPlans();
+      }
+
+      // Get subscription plan details
+      if (
+        (lowerMessage.includes("get") || lowerMessage.includes("show")) &&
+        lowerMessage.includes("subscription") &&
+        lowerMessage.includes("plan")
+      ) {
+        return await this.getSubscriptionPlan(message);
+      }
+
+      // Create subscription
+      if (
+        lowerMessage.includes("create") &&
+        lowerMessage.includes("subscription") &&
+        !lowerMessage.includes("plan")
+      ) {
+        return await this.createSubscription(message);
+      }
+
+      // Get subscription details
+      if (
+        (lowerMessage.includes("get") || lowerMessage.includes("show")) &&
+        lowerMessage.includes("subscription") &&
+        !lowerMessage.includes("plan")
+      ) {
+        return await this.getSubscription(message);
+      }
+
+      // Update subscription
+      if (
+        lowerMessage.includes("update") &&
+        lowerMessage.includes("subscription")
+      ) {
+        return await this.updateSubscription(message);
+      }
+
+      // Cancel subscription
+      if (
+        lowerMessage.includes("cancel") &&
+        lowerMessage.includes("subscription")
+      ) {
+        return await this.cancelSubscription(message);
+      }
+
+      // === DISPUTE MANAGEMENT ===
+
+      // List disputes
+      if (lowerMessage.includes("list") && lowerMessage.includes("dispute")) {
+        return await this.listDisputes();
+      }
+
+      // Get dispute details
+      if (
+        (lowerMessage.includes("get") && lowerMessage.includes("dispute")) ||
+        (lowerMessage.includes("show") && lowerMessage.includes("dispute"))
+      ) {
+        return await this.getDispute(message);
+      }
+
+      // Accept dispute claim
+      if (lowerMessage.includes("accept") && lowerMessage.includes("dispute")) {
+        return await this.acceptDispute(message);
+      }
+
+      // === INVOICE ADVANCED OPERATIONS ===
+
+      // Send invoice reminder
+      if (
+        lowerMessage.includes("reminder") &&
+        lowerMessage.includes("invoice")
+      ) {
+        return await this.sendInvoiceReminder(message);
+      }
+
+      // Cancel invoice
+      if (lowerMessage.includes("cancel") && lowerMessage.includes("invoice")) {
+        return await this.cancelInvoice(message);
+      }
+
+      // Generate invoice QR code
+      if (
+        (lowerMessage.includes("qr") && lowerMessage.includes("invoice")) ||
+        (lowerMessage.includes("qr code") && lowerMessage.includes("invoice"))
+      ) {
+        return await this.generateInvoiceQR(message);
+      }
+
       // Default fallback
-      return "I can help you with PayPal operations like creating orders, checking status, creating invoices, tracking shipments, or processing refunds. Please specify what you'd like to do!";
+      return "I can help you with comprehensive PayPal operations including: orders, invoices, products, subscriptions, disputes, transactions, refunds, and shipment tracking. Please specify what you'd like to do!";
     } catch (error: any) {
       return `Error executing PayPal operation: ${error.message}`;
     }
@@ -320,7 +511,7 @@ ${JSON.stringify(parsed, null, 2)}`;
       /'([^']*)'|"([^"]*)"|for\s+(.+?)(?:\s+for|\s*$)/i
     );
 
-    const email = emailMatch ? emailMatch[1] : "customer@example.com";
+    const email = emailMatch ? emailMatch[1] : "usth@personal.com";
     const amount = amountMatch ? parseFloat(amountMatch[1]) : 100;
     const description =
       (descriptionMatch &&
@@ -1026,5 +1217,625 @@ ${
     ? `\n💳 **Payment Link Ready!**\n${paymentLink}\n\n📧 Share this link with your customer to collect payment!`
     : "\n⚠️ Payment link not available - check invoice status"
 }`;
+  }
+
+  // === PRODUCT CATALOG MANAGEMENT METHODS ===
+
+  private async createProduct(message: string): Promise<string> {
+    const nameMatch = message.match(
+      /'([^']*)'|"([^"]*)"|create product (.+?)(?:\s|$)/i
+    );
+    const priceMatch = message.match(/[£$€]?(\d+(?:\.\d{2})?)/);
+
+    const productName =
+      (nameMatch && (nameMatch[1] || nameMatch[2] || nameMatch[3])) ||
+      "New Product";
+    const price = priceMatch ? parseFloat(priceMatch[1]) : 29.99;
+
+    const createProductTool = this.tools.find(
+      (tool) => tool.name === "create_product"
+    );
+    if (!createProductTool) {
+      return "❌ Create product tool not available";
+    }
+
+    const productRequest = {
+      name: productName.trim(),
+      description: `${productName.trim()} - Created via PayPal Agent`,
+      type: "PHYSICAL",
+      category: "SOFTWARE",
+      home_url: "https://example.com",
+    };
+
+    try {
+      const result = await createProductTool.func(
+        JSON.stringify(productRequest)
+      );
+      const parsed = JSON.parse(result);
+
+      if (parsed.error) {
+        return `❌ Error creating product: ${parsed.error}`;
+      }
+
+      return `📦 **Product Created Successfully!**
+- Product ID: ${parsed.id || "Unknown"}
+- Name: ${productName}
+- Type: ${parsed.type || "PHYSICAL"}
+- Status: ${parsed.status || "ACTIVE"}`;
+    } catch (error: any) {
+      return `❌ Error creating product: ${error.message}`;
+    }
+  }
+
+  private async listProducts(): Promise<string> {
+    const listProductsTool = this.tools.find(
+      (tool) => tool.name === "list_products"
+    );
+    if (!listProductsTool) {
+      return "❌ List products tool not available";
+    }
+
+    try {
+      const result = await listProductsTool.func("{}");
+      const parsed = JSON.parse(result);
+
+      if (parsed.error) {
+        return `❌ Error listing products: ${parsed.error}`;
+      }
+
+      return `📦 **Your Products:**
+${JSON.stringify(parsed, null, 2)}`;
+    } catch (error: any) {
+      return `❌ Error listing products: ${error.message}`;
+    }
+  }
+
+  private async getProduct(message: string): Promise<string> {
+    const productIdMatch = message.match(/PROD-[A-Z0-9]+|([A-Z0-9]{17,})/);
+    if (!productIdMatch) {
+      return "❌ Please provide a valid product ID (e.g., 'Get product PROD-XXXXXXXXXXXXXXXX')";
+    }
+
+    const productId = productIdMatch[1] || productIdMatch[0];
+    const getProductTool = this.tools.find(
+      (tool) => tool.name === "show_product_details"
+    );
+    if (!getProductTool) {
+      return "❌ Get product tool not available";
+    }
+
+    try {
+      const result = await getProductTool.func(
+        JSON.stringify({ product_id: productId })
+      );
+      const parsed = JSON.parse(result);
+
+      if (parsed.error) {
+        return `❌ Error getting product: ${parsed.error}`;
+      }
+
+      return `📦 **Product Details:**
+- Product ID: ${parsed.id || productId}
+- Name: ${parsed.name || "Unknown"}
+- Description: ${parsed.description || "No description"}
+- Type: ${parsed.type || "Unknown"}
+- Status: ${parsed.status || "Unknown"}
+- Full Details: ${JSON.stringify(parsed, null, 2)}`;
+    } catch (error: any) {
+      return `❌ Error getting product: ${error.message}`;
+    }
+  }
+
+  // === SUBSCRIPTION MANAGEMENT METHODS ===
+
+  private async createSubscriptionPlan(message: string): Promise<string> {
+    const nameMatch = message.match(/'([^']*)'|"([^"]*)"|plan (.+?)(?:\s|$)/i);
+    const priceMatch = message.match(/[£$€]?(\d+(?:\.\d{2})?)/);
+
+    const planName =
+      (nameMatch && (nameMatch[1] || nameMatch[2] || nameMatch[3])) ||
+      "Monthly Subscription";
+    const price = priceMatch ? parseFloat(priceMatch[1]) : 9.99;
+
+    const createPlanTool = this.tools.find(
+      (tool) => tool.name === "create_subscription_plan"
+    );
+    if (!createPlanTool) {
+      return "❌ Create subscription plan tool not available";
+    }
+
+    const planRequest = {
+      product_id: "PROD-XXXXXXXXXXXX", // You'd need a real product ID
+      name: planName.trim(),
+      description: `${planName.trim()} - Created via PayPal Agent`,
+      billing_cycles: [
+        {
+          frequency: {
+            interval_unit: "MONTH",
+            interval_count: 1,
+          },
+          tenure_type: "REGULAR",
+          sequence: 1,
+          total_cycles: 0,
+          pricing_scheme: {
+            fixed_price: {
+              value: price.toFixed(2),
+              currency_code: "USD",
+            },
+          },
+        },
+      ],
+      payment_preferences: {
+        auto_bill_outstanding: true,
+        setup_fee_failure_action: "CONTINUE",
+        payment_failure_threshold: 3,
+      },
+    };
+
+    try {
+      const result = await createPlanTool.func(JSON.stringify(planRequest));
+      const parsed = JSON.parse(result);
+
+      if (parsed.error) {
+        return `❌ Error creating subscription plan: ${parsed.error}`;
+      }
+
+      return `📋 **Subscription Plan Created Successfully!**
+- Plan ID: ${parsed.id || "Unknown"}
+- Name: ${planName}
+- Price: $${price}/month
+- Status: ${parsed.status || "ACTIVE"}`;
+    } catch (error: any) {
+      return `❌ Error creating subscription plan: ${error.message}`;
+    }
+  }
+
+  private async listSubscriptionPlans(): Promise<string> {
+    const listPlansTool = this.tools.find(
+      (tool) => tool.name === "list_subscription_plans"
+    );
+    if (!listPlansTool) {
+      return "❌ List subscription plans tool not available";
+    }
+
+    try {
+      const result = await listPlansTool.func("{}");
+      const parsed = JSON.parse(result);
+
+      if (parsed.error) {
+        return `❌ Error listing subscription plans: ${parsed.error}`;
+      }
+
+      return `📋 **Your Subscription Plans:**
+${JSON.stringify(parsed, null, 2)}`;
+    } catch (error: any) {
+      return `❌ Error listing subscription plans: ${error.message}`;
+    }
+  }
+
+  private async getSubscriptionPlan(message: string): Promise<string> {
+    const planIdMatch = message.match(/P-[A-Z0-9]+|([A-Z0-9]{17,})/);
+    if (!planIdMatch) {
+      return "❌ Please provide a valid plan ID (e.g., 'Get subscription plan P-XXXXXXXXXXXXXXXX')";
+    }
+
+    const planId = planIdMatch[1] || planIdMatch[0];
+    const getPlanTool = this.tools.find(
+      (tool) => tool.name === "show_subscription_plan_details"
+    );
+    if (!getPlanTool) {
+      return "❌ Get subscription plan tool not available";
+    }
+
+    try {
+      const result = await getPlanTool.func(
+        JSON.stringify({ plan_id: planId })
+      );
+      const parsed = JSON.parse(result);
+
+      if (parsed.error) {
+        return `❌ Error getting subscription plan: ${parsed.error}`;
+      }
+
+      return `📋 **Subscription Plan Details:**
+- Plan ID: ${parsed.id || planId}
+- Name: ${parsed.name || "Unknown"}
+- Status: ${parsed.status || "Unknown"}
+- Full Details: ${JSON.stringify(parsed, null, 2)}`;
+    } catch (error: any) {
+      return `❌ Error getting subscription plan: ${error.message}`;
+    }
+  }
+
+  private async createSubscription(message: string): Promise<string> {
+    const planIdMatch = message.match(/P-[A-Z0-9]+/);
+    const emailMatch = message.match(
+      /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/
+    );
+
+    if (!planIdMatch) {
+      return "❌ Please provide a plan ID (e.g., 'Create subscription for P-XXXXXXXXXXXXXXXX for user@example.com')";
+    }
+
+    const planId = planIdMatch[0];
+    const subscriberEmail = emailMatch
+      ? emailMatch[1]
+      : "subscriber@example.com";
+
+    const createSubscriptionTool = this.tools.find(
+      (tool) => tool.name === "create_subscription"
+    );
+    if (!createSubscriptionTool) {
+      return "❌ Create subscription tool not available";
+    }
+
+    const subscriptionRequest = {
+      plan_id: planId,
+      subscriber: {
+        email_address: subscriberEmail,
+        name: {
+          given_name: "John",
+          surname: "Doe",
+        },
+      },
+      application_context: {
+        brand_name: "PayPal Agent",
+        locale: "en-US",
+        shipping_preference: "NO_SHIPPING",
+        user_action: "SUBSCRIBE_NOW",
+        payment_method: {
+          payer_selected: "PAYPAL",
+          payee_preferred: "IMMEDIATE_PAYMENT_REQUIRED",
+        },
+        return_url: "https://example.com/success",
+        cancel_url: "https://example.com/cancel",
+      },
+    };
+
+    try {
+      const result = await createSubscriptionTool.func(
+        JSON.stringify(subscriptionRequest)
+      );
+      const parsed = JSON.parse(result);
+
+      if (parsed.error) {
+        return `❌ Error creating subscription: ${parsed.error}`;
+      }
+
+      return `🔄 **Subscription Created Successfully!**
+- Subscription ID: ${parsed.id || "Unknown"}
+- Plan ID: ${planId}
+- Subscriber: ${subscriberEmail}
+- Status: ${parsed.status || "APPROVAL_PENDING"}`;
+    } catch (error: any) {
+      return `❌ Error creating subscription: ${error.message}`;
+    }
+  }
+
+  private async getSubscription(message: string): Promise<string> {
+    const subscriptionIdMatch = message.match(/I-[A-Z0-9]+|([A-Z0-9]{17,})/);
+    if (!subscriptionIdMatch) {
+      return "❌ Please provide a valid subscription ID (e.g., 'Get subscription I-XXXXXXXXXXXXXXXX')";
+    }
+
+    const subscriptionId = subscriptionIdMatch[1] || subscriptionIdMatch[0];
+    const getSubscriptionTool = this.tools.find(
+      (tool) => tool.name === "show_subscription_details"
+    );
+    if (!getSubscriptionTool) {
+      return "❌ Get subscription tool not available";
+    }
+
+    try {
+      const result = await getSubscriptionTool.func(
+        JSON.stringify({ subscription_id: subscriptionId })
+      );
+      const parsed = JSON.parse(result);
+
+      if (parsed.error) {
+        return `❌ Error getting subscription: ${parsed.error}`;
+      }
+
+      return `🔄 **Subscription Details:**
+- Subscription ID: ${parsed.id || subscriptionId}
+- Status: ${parsed.status || "Unknown"}
+- Plan ID: ${parsed.plan_id || "Unknown"}
+- Subscriber: ${parsed.subscriber?.email_address || "Unknown"}
+- Full Details: ${JSON.stringify(parsed, null, 2)}`;
+    } catch (error: any) {
+      return `❌ Error getting subscription: ${error.message}`;
+    }
+  }
+
+  private async updateSubscription(message: string): Promise<string> {
+    const subscriptionIdMatch = message.match(/I-[A-Z0-9]+|([A-Z0-9]{17,})/);
+    if (!subscriptionIdMatch) {
+      return "❌ Please provide a valid subscription ID (e.g., 'Update subscription I-XXXXXXXXXXXXXXXX')";
+    }
+
+    const subscriptionId = subscriptionIdMatch[1] || subscriptionIdMatch[0];
+    const updateSubscriptionTool = this.tools.find(
+      (tool) => tool.name === "update_subscription"
+    );
+    if (!updateSubscriptionTool) {
+      return "❌ Update subscription tool not available";
+    }
+
+    // Basic update example - you can enhance this based on the message content
+    const updateRequest = {
+      subscription_id: subscriptionId,
+      // Add update operations based on message parsing
+    };
+
+    try {
+      const result = await updateSubscriptionTool.func(
+        JSON.stringify(updateRequest)
+      );
+      const parsed = JSON.parse(result);
+
+      if (parsed.error) {
+        return `❌ Error updating subscription: ${parsed.error}`;
+      }
+
+      return `🔄 **Subscription Updated Successfully!**
+- Subscription ID: ${subscriptionId}
+- Update Details: ${JSON.stringify(parsed, null, 2)}`;
+    } catch (error: any) {
+      return `❌ Error updating subscription: ${error.message}`;
+    }
+  }
+
+  private async cancelSubscription(message: string): Promise<string> {
+    const subscriptionIdMatch = message.match(/I-[A-Z0-9]+|([A-Z0-9]{17,})/);
+    if (!subscriptionIdMatch) {
+      return "❌ Please provide a valid subscription ID (e.g., 'Cancel subscription I-XXXXXXXXXXXXXXXX')";
+    }
+
+    const subscriptionId = subscriptionIdMatch[1] || subscriptionIdMatch[0];
+    const cancelSubscriptionTool = this.tools.find(
+      (tool) => tool.name === "cancel_subscription"
+    );
+    if (!cancelSubscriptionTool) {
+      return "❌ Cancel subscription tool not available";
+    }
+
+    const cancelRequest = {
+      subscription_id: subscriptionId,
+      reason: "User requested cancellation via PayPal Agent",
+    };
+
+    try {
+      const result = await cancelSubscriptionTool.func(
+        JSON.stringify(cancelRequest)
+      );
+      const parsed = JSON.parse(result);
+
+      if (parsed.error) {
+        return `❌ Error cancelling subscription: ${parsed.error}`;
+      }
+
+      return `❌ **Subscription Cancelled Successfully!**
+- Subscription ID: ${subscriptionId}
+- Status: CANCELLED
+- Cancellation processed via PayPal Agent`;
+    } catch (error: any) {
+      return `❌ Error cancelling subscription: ${error.message}`;
+    }
+  }
+
+  // === DISPUTE MANAGEMENT METHODS ===
+
+  private async listDisputes(): Promise<string> {
+    const listDisputesTool = this.tools.find(
+      (tool) => tool.name === "list_disputes"
+    );
+    if (!listDisputesTool) {
+      return "❌ List disputes tool not available";
+    }
+
+    try {
+      const result = await listDisputesTool.func("{}");
+      const parsed = JSON.parse(result);
+
+      if (parsed.error) {
+        return `❌ Error listing disputes: ${parsed.error}`;
+      }
+
+      return `⚖️ **Your Disputes:**
+${JSON.stringify(parsed, null, 2)}`;
+    } catch (error: any) {
+      return `❌ Error listing disputes: ${error.message}`;
+    }
+  }
+
+  private async getDispute(message: string): Promise<string> {
+    const disputeIdMatch = message.match(/PP-D-[A-Z0-9]+|([A-Z0-9]{10,})/);
+    if (!disputeIdMatch) {
+      return "❌ Please provide a valid dispute ID (e.g., 'Get dispute PP-D-XXXXXXXXXX')";
+    }
+
+    const disputeId = disputeIdMatch[1] || disputeIdMatch[0];
+    const getDisputeTool = this.tools.find(
+      (tool) => tool.name === "get_dispute"
+    );
+    if (!getDisputeTool) {
+      return "❌ Get dispute tool not available";
+    }
+
+    try {
+      const result = await getDisputeTool.func(
+        JSON.stringify({ dispute_id: disputeId })
+      );
+      const parsed = JSON.parse(result);
+
+      if (parsed.error) {
+        return `❌ Error getting dispute: ${parsed.error}`;
+      }
+
+      return `⚖️ **Dispute Details:**
+- Dispute ID: ${parsed.dispute_id || disputeId}
+- Status: ${parsed.status || "Unknown"}
+- Reason: ${parsed.reason || "Unknown"}
+- Amount: ${
+        parsed.disputed_transactions?.[0]?.seller_transaction_id || "Unknown"
+      }
+- Full Details: ${JSON.stringify(parsed, null, 2)}`;
+    } catch (error: any) {
+      return `❌ Error getting dispute: ${error.message}`;
+    }
+  }
+
+  private async acceptDispute(message: string): Promise<string> {
+    const disputeIdMatch = message.match(/PP-D-[A-Z0-9]+|([A-Z0-9]{10,})/);
+    if (!disputeIdMatch) {
+      return "❌ Please provide a valid dispute ID (e.g., 'Accept dispute PP-D-XXXXXXXXXX')";
+    }
+
+    const disputeId = disputeIdMatch[1] || disputeIdMatch[0];
+    const acceptDisputeTool = this.tools.find(
+      (tool) => tool.name === "accept_dispute_claim"
+    );
+    if (!acceptDisputeTool) {
+      return "❌ Accept dispute tool not available";
+    }
+
+    const acceptRequest = {
+      dispute_id: disputeId,
+      note: "Accepted via PayPal Agent",
+    };
+
+    try {
+      const result = await acceptDisputeTool.func(
+        JSON.stringify(acceptRequest)
+      );
+      const parsed = JSON.parse(result);
+
+      if (parsed.error) {
+        return `❌ Error accepting dispute: ${parsed.error}`;
+      }
+
+      return `✅ **Dispute Accepted Successfully!**
+- Dispute ID: ${disputeId}
+- Status: ACCEPTED
+- The dispute claim has been accepted and will be processed accordingly.`;
+    } catch (error: any) {
+      return `❌ Error accepting dispute: ${error.message}`;
+    }
+  }
+
+  // === ADVANCED INVOICE METHODS ===
+
+  private async sendInvoiceReminder(message: string): Promise<string> {
+    const invoiceIdMatch = message.match(/(INV2?-[A-Z0-9-]+)/);
+    if (!invoiceIdMatch) {
+      return "❌ Please provide a valid invoice ID (e.g., 'Send reminder for invoice INV2-XXXX-XXXX-XXXX-XXXX')";
+    }
+
+    const invoiceId = invoiceIdMatch[1];
+    const sendReminderTool = this.tools.find(
+      (tool) => tool.name === "send_invoice_reminder"
+    );
+    if (!sendReminderTool) {
+      return "❌ Send invoice reminder tool not available";
+    }
+
+    const reminderRequest = {
+      invoice_id: invoiceId,
+      note: "Friendly payment reminder sent via PayPal Agent",
+    };
+
+    try {
+      const result = await sendReminderTool.func(
+        JSON.stringify(reminderRequest)
+      );
+      const parsed = JSON.parse(result);
+
+      if (parsed.error) {
+        return `❌ Error sending reminder: ${parsed.error}`;
+      }
+
+      return `📧 **Invoice Reminder Sent Successfully!**
+- Invoice ID: ${invoiceId}
+- Reminder sent to customer
+- Status: ${parsed.status || "SENT"}`;
+    } catch (error: any) {
+      return `❌ Error sending invoice reminder: ${error.message}`;
+    }
+  }
+
+  private async cancelInvoice(message: string): Promise<string> {
+    const invoiceIdMatch = message.match(/(INV2?-[A-Z0-9-]+)/);
+    if (!invoiceIdMatch) {
+      return "❌ Please provide a valid invoice ID (e.g., 'Cancel invoice INV2-XXXX-XXXX-XXXX-XXXX')";
+    }
+
+    const invoiceId = invoiceIdMatch[1];
+    const cancelInvoiceTool = this.tools.find(
+      (tool) => tool.name === "cancel_sent_invoice"
+    );
+    if (!cancelInvoiceTool) {
+      return "❌ Cancel invoice tool not available";
+    }
+
+    const cancelRequest = {
+      invoice_id: invoiceId,
+      note: "Invoice cancelled via PayPal Agent",
+    };
+
+    try {
+      const result = await cancelInvoiceTool.func(
+        JSON.stringify(cancelRequest)
+      );
+      const parsed = JSON.parse(result);
+
+      if (parsed.error) {
+        return `❌ Error cancelling invoice: ${parsed.error}`;
+      }
+
+      return `❌ **Invoice Cancelled Successfully!**
+- Invoice ID: ${invoiceId}
+- Status: CANCELLED
+- The invoice has been cancelled and is no longer payable.`;
+    } catch (error: any) {
+      return `❌ Error cancelling invoice: ${error.message}`;
+    }
+  }
+
+  private async generateInvoiceQR(message: string): Promise<string> {
+    const invoiceIdMatch = message.match(/(INV2?-[A-Z0-9-]+)/);
+    if (!invoiceIdMatch) {
+      return "❌ Please provide a valid invoice ID (e.g., 'Generate QR code for invoice INV2-XXXX-XXXX-XXXX-XXXX')";
+    }
+
+    const invoiceId = invoiceIdMatch[1];
+    const generateQRTool = this.tools.find(
+      (tool) => tool.name === "generate_invoice_qr_code"
+    );
+    if (!generateQRTool) {
+      return "❌ Generate QR code tool not available";
+    }
+
+    const qrRequest = {
+      invoice_id: invoiceId,
+      width: 200,
+      height: 200,
+    };
+
+    try {
+      const result = await generateQRTool.func(JSON.stringify(qrRequest));
+      const parsed = JSON.parse(result);
+
+      if (parsed.error) {
+        return `❌ Error generating QR code: ${parsed.error}`;
+      }
+
+      return `📱 **Invoice QR Code Generated Successfully!**
+- Invoice ID: ${invoiceId}
+- QR Code URL: ${parsed.href || "Generated"}
+- Customers can scan this QR code to pay the invoice directly
+- QR Code Details: ${JSON.stringify(parsed, null, 2)}`;
+    } catch (error: any) {
+      return `❌ Error generating QR code: ${error.message}`;
+    }
   }
 }

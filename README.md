@@ -75,7 +75,7 @@ npm run dev
 
 ```bash
 # Test complete invoice workflow
-node test-invoice-workflow.js
+node tests/invoices/test-invoice-workflow.js
 
 # Test complete order workflow
 npm run test:order
@@ -99,7 +99,7 @@ npm run script:link [INVOICE_ID]     # Get payment link
 ```bash
 curl -X POST http://localhost:3000/chat \
   -H "Content-Type: application/json" \
-  -d '{"message": "Create an invoice for customer@example.com for $50 for Web Development"}'
+  -d '{"message": "Create an invoice for usth@personal.com for $50 for Web Development"}'
 ```
 
 ### 📧 Invoice Examples
@@ -153,7 +153,7 @@ curl -X POST http://localhost:3000/chat \
 
 ```bash
 # Creates invoice → Gets payment link → Checks status
-node test-invoice-workflow.js
+node tests/invoices/test-invoice-workflow.js
 
 # Check specific invoice status
 node check-invoice-status.js INV2-XXXX-XXXX-XXXX-XXXX
@@ -176,7 +176,7 @@ node capture-order.js 1AB23456CD789012E
 
 ### 📧 Invoice Payment Link Workflow
 
-1. **Create Invoice**: `node test-invoice-workflow.js`
+1. **Create Invoice**: `node tests/invoices/test-invoice-workflow.js`
 
    - Creates invoice for $50
    - Automatically generates payment link
@@ -244,10 +244,10 @@ npm run build
 npm start
 
 # Test invoice workflow
-node test-invoice-workflow.js
+node tests/invoices/test-invoice-workflow.js
 
 # Test order workflow
-node test-order-workflow.js
+node tests/test-order-workflow.js
 ```
 
 ## 📁 Project Structure
@@ -258,13 +258,22 @@ paypal-agent-toolkit/
 │   ├── agent-improved.ts     # Main PayPal agent with invoice/order logic
 │   ├── server.ts            # Express server
 │   └── paypal-tools.ts      # PayPal API tool definitions
-├── test-invoice-workflow.js # Complete invoice testing
-├── test-order-workflow.js   # Complete order testing
-├── check-invoice-status.js  # Invoice status checker
-├── get-invoice-link.js      # Payment link extractor
-├── capture-order.js         # Order capture utility
-└── test-client.js          # Main test suite
+├── tests/
+│   ├── invoices/            # Invoice-specific tests
+│   │   ├── test-invoice-workflow.js # Complete invoice testing
+│   │   ├── test-invoice-features.js # Invoice features testing
+│   │   ├── test-invoice-workflows.js # Invoice workflow testing
+│   │   ├── test-invoice-functions.js # Invoice function testing
+│   │   └── test-all-invoices.js     # Complete invoice test suite
+│   ├── test-client.js       # Main test suite
+│   └── test-order-workflow.js # Complete order testing
+├── scripts/
+│   ├── check-invoice-status.js  # Invoice status checker
+│   ├── get-invoice-link.js      # Payment link extractor
+│   └── capture-order.js         # Order capture utility
 ```
+
+````
 
 ## 🎯 Key Features Implemented
 
@@ -331,7 +340,7 @@ node capture-order.js ORDER_ID
 
 # View server logs
 npm run dev  # Watch terminal output
-```
+````
 
 ## 📞 Support
 

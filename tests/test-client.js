@@ -1,7 +1,7 @@
 // PayPal Agent Toolkit - Main Test Suite
 // For comprehensive workflow testing, use:
-//   node test-invoice-workflow.js  - Complete invoice workflow
-//   node test-order-workflow.js    - Complete order workflow
+//   node tests/invoices/test-invoice-workflow.js  - Complete invoice workflow
+//   node tests/test-order-workflow.js    - Complete order workflow
 
 const testMessages = [
   "Create an order for $50",

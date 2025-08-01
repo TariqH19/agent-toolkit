@@ -15,9 +15,15 @@ paypal-agent-toolkit/
 │   │   └── ollama-llm.ts         # Ollama LLM implementation
 │   └── server.ts                 # Express server entry point
 ├── tests/                        # Test files
+│   ├── invoices/                 # Invoice-specific tests
+│   │   ├── test-invoice-details.js    # Invoice details testing
+│   │   ├── test-invoice-workflow.js   # Complete invoice workflow tests
+│   │   ├── test-invoice-features.js   # Invoice features testing
+│   │   ├── test-invoice-workflows.js  # Invoice workflow testing
+│   │   ├── test-invoice-functions.js  # Invoice function testing
+│   │   ├── test-all-invoices.js       # Complete invoice test suite
+│   │   └── INVOICE-TESTING.md         # Invoice testing documentation
 │   ├── test-client.js            # Main test client
-│   ├── test-invoice-details.js   # Invoice details testing
-│   ├── test-invoice-workflow.js  # Complete invoice workflow tests
 │   └── test-order-workflow.js    # Complete order workflow tests
 ├── scripts/                      # Utility scripts
 │   ├── capture-order.js          # Manual order capture utility
@@ -66,13 +72,23 @@ Project documentation and guides
 
 ## Available NPM Scripts
 
+### Development
+
 - `npm run dev` - Start development server with hot reload
 - `npm run build` - Build TypeScript to JavaScript
 - `npm start` - Start production server
+
+### Testing
+
 - `npm test` - Run main test client
 - `npm run test:invoice` - Test invoice workflow
 - `npm run test:order` - Test order workflow
 - `npm run test:details` - Test invoice details
+- `npm run test:comprehensive` - Test ALL PayPal features (recommended)
+- `npm run test:new-features` - Test new features (products, subscriptions, disputes)
+
+### Scripts
+
 - `npm run script:capture` - Run order capture script
 - `npm run script:check` - Run invoice status check
 - `npm run script:link` - Get invoice payment link

@@ -18,13 +18,20 @@ paypal-agent-toolkit/
 │   ├── server.ts              # 🌐 Express server
 │   └── paypal-tools.ts        # 🛠️  PayPal API integrations
 │
-├── test-invoice-workflow.js    # 📧 Complete invoice testing
-├── test-order-workflow.js      # 💳 Complete order testing
-├── test-client.js             # 🧪 General test suite
+├── tests/                      # 🧪 Test suites
+│   ├── invoices/              # 📧 Invoice-specific tests
+│   │   ├── test-invoice-workflow.js    # Complete invoice testing
+│   │   ├── test-invoice-features.js    # Invoice features testing
+│   │   ├── test-invoice-workflows.js   # Invoice workflow testing
+│   │   ├── test-invoice-functions.js   # Invoice function testing
+│   │   └── test-all-invoices.js        # Complete invoice test suite
+│   ├── test-client.js         # 🧪 General test suite
+│   └── test-order-workflow.js  # 💳 Complete order testing
 │
-├── check-invoice-status.js     # 📊 Check if invoice is paid
-├── get-invoice-link.js        # 🔗 Get payment link for invoice
-└── capture-order.js           # 💰 Capture approved order
+├── scripts/                    # 🔧 Utility scripts
+│   ├── check-invoice-status.js # 📊 Check if invoice is paid
+│   ├── get-invoice-link.js     # 🔗 Get payment link for invoice
+│   └── capture-order.js        # 💰 Capture approved order
 ```
 
 ## ✅ **Working Features**
@@ -57,10 +64,10 @@ paypal-agent-toolkit/
 npm run dev
 
 # Test complete invoice workflow
-node test-invoice-workflow.js
+node tests/invoices/test-invoice-workflow.js
 
 # Test complete order workflow
-node test-order-workflow.js
+node tests/test-order-workflow.js
 
 # Check specific invoice status
 node check-invoice-status.js INV2-XXXX-XXXX-XXXX-XXXX

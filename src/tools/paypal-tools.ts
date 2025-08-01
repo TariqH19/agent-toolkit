@@ -16,11 +16,21 @@ export const createPayPalTools = () => {
       clientSecret: process.env.PAYPAL_CLIENT_SECRET!,
       configuration: {
         actions: {
+          // Orders and Payments
           orders: {
             create: true,
             get: true,
             capture: true,
           },
+          payments: {
+            createRefund: true,
+            getRefunds: true,
+          },
+          refunds: {
+            create: true,
+            get: true,
+          },
+          // Invoices (Complete set)
           invoices: {
             create: true,
             get: true,
@@ -30,18 +40,35 @@ export const createPayPalTools = () => {
             cancel: true,
             generateQRC: true,
           },
-          refunds: {
-            create: true,
+          // Dispute Management
+          disputes: {
+            list: true,
             get: true,
+            accept: true,
           },
-          payments: {
-            createRefund: true,
-            getRefunds: true,
-          },
+          // Shipment Tracking
           shipment: {
             create: true,
             get: true,
+            list: true,
           },
+          // Catalog Management
+          catalog: {
+            createProduct: true,
+            listProducts: true,
+            getProduct: true,
+          },
+          // Subscription Management
+          subscriptions: {
+            createPlan: true,
+            listPlans: true,
+            getPlan: true,
+            create: true,
+            get: true,
+            update: true,
+            cancel: true,
+          },
+          // Reporting and Insights
           transactions: {
             list: true,
           },

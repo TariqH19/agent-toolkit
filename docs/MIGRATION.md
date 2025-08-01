@@ -19,9 +19,17 @@ This guide documents the reorganization of the PayPal Agent Toolkit project stru
 #### Test Files → `/tests`
 
 - `test-client.js` → `tests/test-client.js`
-- `test-invoice-details.js` → `tests/test-invoice-details.js`
-- `test-invoice-workflow.js` → `tests/test-invoice-workflow.js`
 - `test-order-workflow.js` → `tests/test-order-workflow.js`
+
+#### Invoice Test Files → `/tests/invoices`
+
+- `test-invoice-details.js` → `tests/invoices/test-invoice-details.js`
+- `test-invoice-workflow.js` → `tests/invoices/test-invoice-workflow.js`
+- `test-invoice-features.js` → `tests/invoices/test-invoice-features.js`
+- `test-invoice-workflows.js` → `tests/invoices/test-invoice-workflows.js`
+- `test-invoice-functions.js` → `tests/invoices/test-invoice-functions.js`
+- `test-all-invoices.js` → `tests/invoices/test-all-invoices.js`
+- `INVOICE-TESTING.md` → `tests/invoices/INVOICE-TESTING.md`
 
 #### Scripts → `/scripts`
 
