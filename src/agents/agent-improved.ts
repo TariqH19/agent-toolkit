@@ -1,8 +1,8 @@
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { StringOutputParser } from "@langchain/core/output_parsers";
-import { OllamaLLM } from "./ollama-llm";
-import { createPayPalTools } from "./paypal-tools";
+import { OllamaLLM } from "../llm/ollama-llm";
+import { createPayPalTools } from "../tools/paypal-tools";
 
 export class PayPalAgent {
   private llm: OllamaLLM;

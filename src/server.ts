@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { PayPalAgent } from "./agent-improved";
+import { PayPalAgent } from "./agents/agent-improved";
 
 dotenv.config();
 

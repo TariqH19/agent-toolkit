@@ -7,7 +7,13 @@
     "dev": "nodemon --exec ts-node src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "test": "node test-client.js"
+    "test": "node tests/test-client.js",
+    "test:invoice": "node tests/test-invoice-workflow.js",
+    "test:order": "node tests/test-order-workflow.js",
+    "test:details": "node tests/test-invoice-details.js",
+    "script:capture": "node scripts/capture-order.js",
+    "script:check": "node scripts/check-invoice-status.js",
+    "script:link": "node scripts/get-invoice-link.js"
   },
   "dependencies": {
     "@langchain/community": "^0.2.28",

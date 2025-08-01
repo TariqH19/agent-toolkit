@@ -2,6 +2,22 @@
 
 A complete PayPal commerce assistant built with LangChain and Ollama for local LLM processing. Features comprehensive invoice management with payment links and order processing workflows.
 
+## 📁 Project Structure
+
+```
+paypal-agent-toolkit/
+├── src/                          # Source code
+│   ├── agents/                   # AI agent implementations
+│   ├── tools/                    # PayPal API integrations
+│   ├── llm/                      # Language model setup
+│   └── server.ts                 # Express server
+├── tests/                        # Test suites
+├── scripts/                      # Utility scripts
+└── docs/                         # Documentation
+```
+
+See [docs/STRUCTURE.md](docs/STRUCTURE.md) for detailed structure information.
+
 ## ✨ Features
 
 ### 📧 Invoice Management
@@ -62,10 +78,18 @@ npm run dev
 node test-invoice-workflow.js
 
 # Test complete order workflow
-node test-order-workflow.js
+npm run test:order
+
+# Test invoice details
+npm run test:details
 
 # Run main test suite
 npm test
+
+# Manual scripts
+npm run script:capture [ORDER_ID]    # Capture approved order
+npm run script:check [INVOICE_ID]    # Check invoice status
+npm run script:link [INVOICE_ID]     # Get payment link
 ```
 
 ## 🔧 API Usage
